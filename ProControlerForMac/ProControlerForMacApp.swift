@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct ProControlerForMacApp: App {
+    @StateObject private var controllerHandler = ControllerMonitor()
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(controllerHandler)
         }
     }
 }
