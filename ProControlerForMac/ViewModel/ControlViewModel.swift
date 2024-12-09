@@ -12,7 +12,7 @@ class ControllerMonitor: ObservableObject {
             name: .GCControllerDidConnect,
             object: nil
         )
-        GCController.startWirelessControllerDiscovery()
+//        GCController.startWirelessControllerDiscovery()
     }
 
     @objc func controllerDidConnect(notification: Notification) {
@@ -21,6 +21,7 @@ class ControllerMonitor: ObservableObject {
         if let gamepad = controller.extendedGamepad {
             gamepad.valueChangedHandler = { [weak self] gamepad, element in
                 guard let self = self else { return }
+                
                 if element == gamepad.buttonA {
                     self.buttonA = gamepad.buttonA.isPressed
                 }
