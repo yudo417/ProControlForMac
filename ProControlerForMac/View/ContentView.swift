@@ -18,7 +18,7 @@ struct ContentView: View {
             Text("Left Stick: X = \(controllerMonitor.leftStick.x), Y = \(controllerMonitor.leftStick.y)")
         }
         .onChange(of:[controllerMonitor.leftStick.x,controllerMonitor.leftStick.y]){newValue in
-
+            CGWarpMouseCursorPosition(CGPoint(x:Nowposition.x + newValue[0],y:Nowposition.y + newValue[1]))
             print("X:"+(newValue[0] > 0 ? " " : "")+String(format: "%0.8f", newValue[0])+" Y:"+(newValue[1] >= 0 ? " " : "")+String(format: "%0.8f", newValue[1]) + " "+String(format: "%0.8f", Nowposition.x)+" "+String(format: "%0.8f", Nowposition.y))
         }
         .padding()
