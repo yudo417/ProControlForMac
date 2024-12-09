@@ -19,7 +19,7 @@ struct ContentView: View {
         }
         .onChange(of:[controllerMonitor.leftStick.x,controllerMonitor.leftStick.y]){newValue in
 
-            print("X:"+(newValue[0] > 0 ? " " : "")+String(format: "%0.8f", newValue[0])+" Y:"+(newValue[1] >= 0 ? " " : "")+String(format: "%0.8f", newValue[1])+String(Nowposition.x)+String(Nowposition.y))
+            print("X:"+(newValue[0] > 0 ? " " : "")+String(format: "%0.8f", newValue[0])+" Y:"+(newValue[1] >= 0 ? " " : "")+String(format: "%0.8f", newValue[1]) + " "+String(format: "%0.8f", Nowposition.x)+" "+String(format: "%0.8f", Nowposition.y))
         }
         .padding()
     }
@@ -36,5 +36,9 @@ class CursorController {
             return .zero
         }
         return event.location
+    }
+
+    func getPositionString() -> String{
+        return String(format: "%0.8f", self.getPosition().x)
     }
 }
