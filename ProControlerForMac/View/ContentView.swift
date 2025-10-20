@@ -7,34 +7,33 @@ import GameController
 
 struct ContentView: View {
     @EnvironmentObject var controllerMonitor: ControllerMonitor
-    let ccvm = CursorController()
+    @StateObject private var cursorController = CursorController()
+    
     var Nowposition: CGPoint {
-        ccvm.getPosition()
+        cursorController.getPosition()
     }
 
     var body: some View {
-        VStack {
+        VStack(spacing: 16) {
+            Text(controllerMonitor.isConnected ? "✅ コントローラー接続中" : "❌ コントローラー未接続")
+                .font(.title)
+            
+            Divider()
+            
             Text("Button A: \(controllerMonitor.buttonA ? "Pressed" : "Released")")
-            Text("Left Stick: X = \(controllerMonitor.leftStick.x), Y = \(controllerMonitor.leftStick.y)")
+            Text("Left Stick: X = \(String(format: "%.3f", controllerMonitor.leftStick.x)), Y = \(String(format: "%.3f", controllerMonitor.leftStick.y))")
+            Text("Cursor: X = \(String(format: "%.0f", Nowposition.x)), Y = \(String(format: "%.0f", Nowposition.y))")
         }
-
-        .onReceive(Timer.publish(every: 1/200, on: .main, in: .common).autoconnect()) { _ in
-            let deltaX = controllerMonitor.leftStick.x * 2
-            let deltaY = -controllerMonitor.leftStick.y * 2
-            ccvm.moveCursor(deltaX: deltaX, deltaY: deltaY)
-            ccvm.pressbuttonA(isAPressed: controllerMonitor.buttonA)
-//            print("X:"+(deltaX > 0 ? " " : "")+String(format: "%0.8f", deltaX)+" Y:"+(deltaY >= 0 ? " " : "")+String(format: "%0.8f", deltaY) + " "+String(format: "%0.8f", Nowposition.x)+" "+String(format: "%0.8f", Nowposition.y))
-        }
-
-//        .onChange(of:[controllerMonitor.leftStick.x,controllerMonitor.leftStick.y,Float(Nowposition.x),Float(Nowposition.y)]){newValue in
-//            let deltaX = newValue[0] * 5.0
-//            let deltaY = -newValue[1] * 5.0 // Y軸は反転させる（画面座標系に合わせる）
-//            ccvm.moveCursor(deltaX: deltaX, deltaY: deltaY)
-//            print("X:"+(deltaX > 0 ? " " : "")+String(format: "%0.8f", deltaX)+" Y:"+(deltaY >= 0 ? " " : "")+String(format: "%0.8f", deltaY) + " "+String(format: "%0.8f", Nowposition.x)+" "+String(format: "%0.8f", Nowposition.y))
-//
-//
-//        }
         .padding()
+        .onReceive(Timer.publish(every: 1/200, on: .main, in: .common).autoconnect()) { _ in
+            guard controllerMonitor.isConnected else { return }
+            
+            let deltaX = controllerMonitor.leftStick.x * 3
+            let deltaY = -controllerMonitor.leftStick.y * 3
+            
+            cursorController.moveCursor(deltaX: deltaX, deltaY: deltaY)
+            cursorController.updateButtonA(isPressed: controllerMonitor.buttonA)
+        }
     }
 }
 
@@ -43,8 +42,15 @@ struct ContentView: View {
         .environmentObject(ControllerMonitor())
 }
 
-class CursorController {
-    func getPosition() -> CGPoint{
+class CursorController: ObservableObject {
+    @Published private var currentPosition: CGPoint = .zero
+    private var buttonAPressed = false
+    
+    init() {
+        currentPosition = getPosition()
+    }
+    
+    func getPosition() -> CGPoint {
         guard let event = CGEvent(source: nil) else {
             return .zero
         }
@@ -53,23 +59,33 @@ class CursorController {
 
     func moveCursor(deltaX: Float, deltaY: Float) {
         let currentPosition = getPosition()
-        let newX = currentPosition.x + CGFloat(deltaX)
-        let newY = currentPosition.y + CGFloat(deltaY)
+        let newX = currentPosition.x + CGFloat(deltaX) * 3
+        let newY = currentPosition.y + CGFloat(deltaY) * 3
 
-        // CGEventを使ってカーソル位置を更新
-        if let moveEvent = CGEvent(mouseEventSource: nil, mouseType: .mouseMoved, mouseCursorPosition: CGPoint(x: newX, y: newY), mouseButton: .left) {
+        // ボタンが押下中の場合は、ドラッグイベントとして送信
+        let eventType: CGEventType = buttonAPressed ? .leftMouseDragged : .mouseMoved
+        
+        if let moveEvent = CGEvent(mouseEventSource: nil, mouseType: eventType, mouseCursorPosition: CGPoint(x: newX, y: newY), mouseButton: .left) {
             moveEvent.post(tap: .cghidEventTap)
         }
     }
 
-    func pressbuttonA(isAPressed:Bool){
-        if let buttonAEvent = CGEvent(mouseEventSource: nil, mouseType: .leftMouseDown, mouseCursorPosition: getPosition(), mouseButton: .left){
-                buttonAEvent.post(tap: .cghidEventTap)
+    func updateButtonA(isPressed: Bool) {
+        // ボタンが押された瞬間
+        if isPressed && !buttonAPressed {
+            let position = getPosition()
+            if let downEvent = CGEvent(mouseEventSource: nil, mouseType: .leftMouseDown, mouseCursorPosition: position, mouseButton: .left) {
+                downEvent.post(tap: .cghidEventTap)
             }
-
-    }
-
-    func getPositionString() -> String{
-        return String(format: "%0.8f", self.getPosition().x)
+            buttonAPressed = true
+        }
+        // ボタンが離された瞬間
+        else if !isPressed && buttonAPressed {
+            let position = getPosition()
+            if let upEvent = CGEvent(mouseEventSource: nil, mouseType: .leftMouseUp, mouseCursorPosition: position, mouseButton: .left) {
+                upEvent.post(tap: .cghidEventTap)
+            }
+            buttonAPressed = false
+        }
     }
 }
