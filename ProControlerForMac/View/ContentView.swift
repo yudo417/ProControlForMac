@@ -28,6 +28,7 @@ struct ContentView: View {
             } label: {
                 Text("ボタン")
             }
+            ShortCut()
 
         }
         .padding()

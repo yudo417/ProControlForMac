@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		EC253DDD2EABBD320033BFB3 /* ShortcutRecorder in Frameworks */ = {isa = PBXBuildFile; productRef = EC253DDC2EABBD320033BFB3 /* ShortcutRecorder */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		ECDF1D142D0745F700866DFA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EC253DDD2EABBD320033BFB3 /* ShortcutRecorder in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,12 +77,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EC253DDB2EABBD320033BFB3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		ECDF1CF92D0745F600866DFA = {
 			isa = PBXGroup;
 			children = (
 				ECDF1D042D0745F600866DFA /* ProControlerForMac */,
 				ECDF1D162D0745F700866DFA /* ProControlerForMacTests */,
 				ECDF1D202D0745F700866DFA /* ProControlerForMacUITests */,
+				EC253DDB2EABBD320033BFB3 /* Frameworks */,
 				ECDF1D032D0745F600866DFA /* Products */,
 			);
 			sourceTree = "<group>";
@@ -112,6 +125,7 @@
 			);
 			name = ProControlerForMac;
 			packageProductDependencies = (
+				EC253DDC2EABBD320033BFB3 /* ShortcutRecorder */,
 			);
 			productName = ProControlerForMac;
 			productReference = ECDF1D022D0745F600866DFA /* ProControlerForMac.app */;
@@ -195,6 +209,9 @@
 			);
 			mainGroup = ECDF1CF92D0745F600866DFA;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				EC253DDA2EABBD0F0033BFB3 /* XCRemoteSwiftPackageReference "ShortcutRecorder" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = ECDF1D032D0745F600866DFA /* Products */;
 			projectDirPath = "";
@@ -551,6 +568,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		EC253DDA2EABBD0F0033BFB3 /* XCRemoteSwiftPackageReference "ShortcutRecorder" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Kentzo/ShortcutRecorder.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EC253DDC2EABBD320033BFB3 /* ShortcutRecorder */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC253DDA2EABBD0F0033BFB3 /* XCRemoteSwiftPackageReference "ShortcutRecorder" */;
+			productName = ShortcutRecorder;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = ECDF1CFA2D0745F600866DFA /* Project object */;
 }
