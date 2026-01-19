@@ -12,8 +12,6 @@ import AppKit
 struct KeyCodeConverter {
     
     /// キーコードを文字列に変換
-    /// - Parameter keyCode: キーコード（例: 40 = K）
-    /// - Returns: 人間が読める文字列（例: "K"）
     static func keyCodeToString(_ keyCode: UInt16) -> String {
         let keyCodeMap: [UInt16: String] = [
             // アルファベット

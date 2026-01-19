@@ -17,6 +17,8 @@ struct ContentListView: View {
                 VStack(spacing: 0) {
                     layerPickerHeader(profile: profile) // レイヤー
                     Divider()
+                    dualTriggerLayerSetting(profile: profile) // 同時押しレイヤー設定
+                    Divider()
                     layerContentList(profile: profile) // リスト
                 }
                 .navigationTitle(profile.name)
@@ -115,6 +117,42 @@ struct ContentListView: View {
         } message: {
             Text("現在のレイヤーを削除してもよろしいですか？この操作は取り消せません。")
         }
+    }
+    
+    @ViewBuilder
+    private func dualTriggerLayerSetting(profile: Profile) -> some View {
+        HStack {
+            Label("同時押しレイヤー (ZR+ZL)", systemImage: "hand.raised.fill")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            Spacer()
+            
+            Picker("", selection: Binding<UUID?>(
+                get: {
+                    profile.dualTriggerLayerId
+                },
+                set: { newLayerId in
+                    if let controllerId = profileViewModel.selectedControllerId {
+                        profileViewModel.setDualTriggerLayer(
+                            controllerId: controllerId,
+                            profileId: profile.id,
+                            layerId: newLayerId
+                        )
+                    }
+                }
+            )) {
+                Text("なし").tag(nil as UUID?)
+                ForEach(profile.layers, id: \.id) { layer in
+                    Text(layer.name).tag(layer.id as UUID?)
+                }
+            }
+            .pickerStyle(.menu)
+            .frame(width: 150)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Material.bar)
     }
     
     @ViewBuilder

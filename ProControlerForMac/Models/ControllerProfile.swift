@@ -54,11 +54,13 @@ struct Profile: Identifiable, Codable, Hashable {
     var name: String
     var icon: String  // SF Symbols名
     var layers: [Layer]
+    var dualTriggerLayerId: UUID? // ZR+ZL同時押し時のレイヤーID（プロファイルごとに1つ）
     
-    init(id: UUID = UUID(), name: String, icon: String = "folder.fill", layers: [Layer] = []) {
+    init(id: UUID = UUID(), name: String, icon: String = "folder.fill", layers: [Layer] = [], dualTriggerLayerId: UUID? = nil) {
         self.id = id
         self.name = name
         self.icon = icon
+        self.dualTriggerLayerId = dualTriggerLayerId
         // レイヤーがない場合はデフォルトレイヤーを作成
         if layers.isEmpty {
             self.layers = [Layer(name: "Default", triggerButtonId: nil)]
@@ -70,7 +72,7 @@ struct Profile: Identifiable, Codable, Hashable {
     // MARK: - Migration Support
     // buttonConfigsを持っている古いデータからの移行用
     enum CodingKeys: String, CodingKey {
-        case id, name, icon, layers, buttonConfigs
+        case id, name, icon, layers, buttonConfigs, dualTriggerLayerId
     }
     
     init(from decoder: Decoder) throws {
@@ -78,6 +80,7 @@ struct Profile: Identifiable, Codable, Hashable {
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
         icon = try container.decode(String.self, forKey: .icon)
+        dualTriggerLayerId = try container.decodeIfPresent(UUID.self, forKey: .dualTriggerLayerId)
         
         // layersがあればそのまま、なければbuttonConfigsから移行
         if let existingLayers = try? container.decode([Layer].self, forKey: .layers) {
@@ -98,6 +101,7 @@ struct Profile: Identifiable, Codable, Hashable {
         try container.encode(name, forKey: .name)
         try container.encode(icon, forKey: .icon)
         try container.encode(layers, forKey: .layers)
+        try container.encodeIfPresent(dualTriggerLayerId, forKey: .dualTriggerLayerId)
     }
     
     // 後方互換性などのためのヘルパー: 現在のデフォルトレイヤーのボタン設定を返す
@@ -120,6 +124,7 @@ struct Layer: Identifiable, Codable, Hashable {
     let id: UUID
     var name: String // "Default", "Shift (ZR)" など
     var triggerButtonId: String? // nil = 常時（ベース）, "button_ZR" = 押下時のみ（シフト）
+    var triggerButtonIds: [String]? // 複数のトリガーボタン（すべて押されている必要がある）
     var buttonConfigs: [ButtonConfig]
     var leftStickSensitivity: Double // マウス感度
     var rightStickSensitivity: Double // スクロール感度
@@ -128,6 +133,7 @@ struct Layer: Identifiable, Codable, Hashable {
         id: UUID = UUID(),
         name: String,
         triggerButtonId: String? = nil,
+        triggerButtonIds: [String]? = nil,
         buttonConfigs: [ButtonConfig] = [],
         leftStickSensitivity: Double = 10.0,
         rightStickSensitivity: Double = 10.0
@@ -135,6 +141,7 @@ struct Layer: Identifiable, Codable, Hashable {
         self.id = id
         self.name = name
         self.triggerButtonId = triggerButtonId
+        self.triggerButtonIds = triggerButtonIds
         self.buttonConfigs = buttonConfigs
         self.leftStickSensitivity = leftStickSensitivity
         self.rightStickSensitivity = rightStickSensitivity

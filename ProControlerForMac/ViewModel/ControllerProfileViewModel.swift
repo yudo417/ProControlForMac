@@ -30,6 +30,10 @@ class ControllerProfileViewModel: ObservableObject {
 
     private let storageKey = "ControllerProfiles"
     private var cancellables = Set<AnyCancellable>()
+    
+    // ZR/ZLの状態追跡（同時押し判定用）
+    private var isZRPressed: Bool = false
+    private var isZLPressed: Bool = false
     /// 選択中のコントローラー
     var selectedController: Controller? {
         guard let id = selectedControllerId else { return nil }
@@ -145,6 +149,17 @@ class ControllerProfileViewModel: ObservableObject {
         if let icon = icon {
             controllers[controllerIndex].profiles[profileIndex].icon = icon
         }
+    }
+    
+    /// プロファイルの同時押しレイヤーを設定
+    func setDualTriggerLayer(controllerId: UUID, profileId: UUID, layerId: UUID?) {
+        guard let controllerIndex = controllers.firstIndex(where: { $0.id == controllerId }),
+              let profileIndex = controllers[controllerIndex].profiles.firstIndex(where: { $0.id == profileId }) else {
+            return
+        }
+        
+        controllers[controllerIndex].profiles[profileIndex].dualTriggerLayerId = layerId
+        print("✅ Dual trigger layer set: \(layerId?.uuidString ?? "nil")")
     }
     
     // MARK: - Layer Management
@@ -286,6 +301,27 @@ class ControllerProfileViewModel: ObservableObject {
     func handleButtonEvent(buttonId: String, isPressed: Bool) {
         guard let profile = selectedProfile else { return }
         
+        // ZR/ZLの状態を更新
+        if buttonId == "rightTrigger" {
+            isZRPressed = isPressed
+        } else if buttonId == "leftTrigger" {
+            isZLPressed = isPressed
+        }
+        
+        // 0. 同時押しレイヤーの判定（最優先）
+        // ZRとZLの両方が押されている場合、プロファイルのdualTriggerLayerIdを参照
+        if isZRPressed && isZLPressed {
+            if let dualLayerId = profile.dualTriggerLayerId,
+               let dualLayer = profile.layers.first(where: { $0.id == dualLayerId }),
+               let dualLayerIndex = profile.layers.firstIndex(where: { $0.id == dualLayerId }) {
+                DispatchQueue.main.async {
+                    self.selectedLayerIndex = dualLayerIndex
+                }
+                print("🔄 Layer shift to dual trigger layer: \(dualLayer.name) (ZR+ZL)")
+                return // 同時押しレイヤーが優先される
+            }
+        }
+        
         // 1. 現在のレイヤーでの設定を確認
         if selectedLayerIndex < profile.layers.count {
             if let config = profile.layers[selectedLayerIndex].buttonConfigs.first(where: { $0.detectedButtonId == buttonId }) {
@@ -300,11 +336,13 @@ class ControllerProfileViewModel: ObservableObject {
                             print("🔄 Layer shift: \(selectedLayerIndex) -> \(targetIndex) (Button: \(buttonId))")
                         }
                     } else if !isPressed {
-                        // ボタンを離したらデフォルト(0)に戻す
-                        DispatchQueue.main.async {
-                            self.selectedLayerIndex = 0
+                        // ボタンを離したらデフォルト(0)に戻す（ただし同時押し中は除く）
+                        if !(isZRPressed && isZLPressed) {
+                            DispatchQueue.main.async {
+                                self.selectedLayerIndex = 0
+                            }
+                            print("🔄 Layer reset to 0 (Button release: \(buttonId))")
                         }
-                        print("🔄 Layer reset to 0 (Button release: \(buttonId))")
                     }
                     return
                     
@@ -323,11 +361,50 @@ class ControllerProfileViewModel: ObservableObject {
             }
         }
         
-        // 2. 現在レイヤーシフト中(index != 0)で、ボタンが離された場合
-        // 現在のレイヤーにそのボタンの設定がなくても、それが「シフトを引き起こしたボタン(レイヤー0の設定)」であれば戻す必要がある
+        // 2. 単一トリガーボタンによるレイヤー切り替え（triggerButtonIdを使用）
+        // レイヤー0から、triggerButtonIdが一致するレイヤーを探す
+        if let baseLayer = profile.layers.first, selectedLayerIndex == 0 {
+            // ZRのみが押されている場合
+            if isZRPressed && !isZLPressed {
+                if let zrLayer = profile.layers.first(where: { $0.triggerButtonId == "rightTrigger" }) {
+                    if let zrLayerIndex = profile.layers.firstIndex(where: { $0.id == zrLayer.id }) {
+                        DispatchQueue.main.async {
+                            self.selectedLayerIndex = zrLayerIndex
+                        }
+                        print("🔄 Layer shift to ZR layer: \(zrLayer.name)")
+                        return
+                    }
+                }
+            }
+            // ZLのみが押されている場合
+            else if isZLPressed && !isZRPressed {
+                if let zlLayer = profile.layers.first(where: { $0.triggerButtonId == "leftTrigger" }) {
+                    if let zlLayerIndex = profile.layers.firstIndex(where: { $0.id == zlLayer.id }) {
+                        DispatchQueue.main.async {
+                            self.selectedLayerIndex = zlLayerIndex
+                        }
+                        print("🔄 Layer shift to ZL layer: \(zlLayer.name)")
+                        return
+                    }
+                }
+            }
+        }
+        
+        // 3. 現在レイヤーシフト中(index != 0)で、ボタンが離された場合
+        // 同時押しが解除された場合、または単一トリガーが離された場合
         if !isPressed && selectedLayerIndex != 0 {
+            // 同時押しが解除された場合
+            if buttonId == "rightTrigger" || buttonId == "leftTrigger" {
+                if !(isZRPressed && isZLPressed) {
+                    // どちらかが離された場合、デフォルトに戻す
+                    DispatchQueue.main.async {
+                        self.selectedLayerIndex = 0
+                    }
+                    print("🔄 Layer reset to 0 (Trigger release: \(buttonId))")
+                }
+            }
             // レイヤー0の設定を確認
-            if let baseConfig = profile.layers.first?.buttonConfigs.first(where: { $0.detectedButtonId == buttonId }) {
+            else if let baseConfig = profile.layers.first?.buttonConfigs.first(where: { $0.detectedButtonId == buttonId }) {
                 if baseConfig.actionType == .layerShift {
                     DispatchQueue.main.async {
                         self.selectedLayerIndex = 0
