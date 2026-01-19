@@ -40,6 +40,9 @@ struct ContentView: View {
             )
         }
         .onAppear {
+            // ControllerMonitorにProfileViewModelへの参照を設定（感度設定を使用するため）
+            controllerMonitor.profileViewModel = profileViewModel
+            
             // ButtonDetectorとProfileViewModelの連携（レイヤー切り替えなど）
             buttonDetector.onButtonEvent = { [weak profileViewModel] buttonId, isPressed in
                 profileViewModel?.handleButtonEvent(buttonId: buttonId, isPressed: isPressed)

@@ -15,9 +15,9 @@ struct ContentListView: View {
         Group {
             if let profile = selectedProfile {
                 VStack(spacing: 0) {
-                    layerPickerHeader(profile: profile)
+                    layerPickerHeader(profile: profile) // レイヤー
                     Divider()
-                    layerContentList(profile: profile)
+                    layerContentList(profile: profile) // リスト
                 }
                 .navigationTitle(profile.name)
                 .toolbar {
@@ -122,21 +122,58 @@ struct ContentListView: View {
         if profileViewModel.selectedLayerIndex < profile.layers.count {
             let currentLayer = profile.layers[profileViewModel.selectedLayerIndex]
             
+            HStack{
+                VStack(spacing:15) {
+                    Text("Lスティック")
+//                    Spacer()
+                    Image(systemName: "l.joystick")
+                        .resizable()
+                        .frame(width: 20, height: 20)
+//                    Text(String(format: "%.1f", currentLayer.leftStickSensitivity))
+//                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth:.infinity,maxHeight:.infinity)
+                .padding(.vertical, 4)
+                .backgroundStyle(
+                    profileViewModel.detailSelection == .leftStick
+                    ? Color.accentColor
+                    : Color.clear
+                )
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    profileViewModel.selectedButtonConfigId = nil
+                    profileViewModel.detailSelection = .leftStick
+                }
+
+                Divider()
+                // 右スティック
+                VStack(spacing:15) {
+                    Text("Rスティック")
+//                    Spacer()
+//                    Text(String(format: "%.1f", currentLayer.rightStickSensitivity))
+//                        .foregroundColor(.secondary)
+                    Image(systemName: "r.joystick")
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                }
+                .frame(maxWidth:.infinity,maxHeight:.infinity)                .padding(.vertical, 4)
+                .listRowBackground(
+                    profileViewModel.detailSelection == .rightStick
+                    ? Color.accentColor
+                    : Color.clear
+                )
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    profileViewModel.selectedButtonConfigId = nil
+                    profileViewModel.detailSelection = .rightStick
+                }
+            }
+            .frame(height: 100)
+
             List(selection: $profileViewModel.selectedButtonConfigId) {
                 // スティック感度セクション
                 Section("スティック感度") {
-                    HStack {
-                        Text("左スティック (マウス移動)")
-                        Spacer()
-                        Text(String(format: "%.1f", currentLayer.leftStickSensitivity))
-                            .foregroundColor(.secondary)
-                    }
-                    HStack {
-                        Text("右スティック (スクロール)")
-                        Spacer()
-                        Text(String(format: "%.1f", currentLayer.rightStickSensitivity))
-                            .foregroundColor(.secondary)
-                    }
+                    // 左スティック
                 }
                 
                 // ボタン設定セクション
@@ -157,6 +194,11 @@ struct ContentListView: View {
                 }
             }
             .listStyle(.bordered)
+            .onChange(of: profileViewModel.selectedButtonConfigId) { newValue in
+                if let buttonId = newValue {
+                    profileViewModel.detailSelection = .button(buttonId)
+                }
+            }
         } else {
             // レイヤー削除などでインデックスが範囲外になった場合のフォールバック
             Text("レイヤーが選択されていません")

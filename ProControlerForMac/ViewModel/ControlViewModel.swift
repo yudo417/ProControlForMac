@@ -5,12 +5,16 @@ import AppKit
 class ControllerMonitor: ObservableObject {
     @Published var buttonA: Bool = false
     @Published var leftStick: (x: Float, y: Float) = (0.0, 0.0)
+    @Published var rightStick: (x: Float, y: Float) = (0.0, 0.0)
     @Published var isConnected: Bool = false
     
     private var currentController: GCController?
     private let deadzone: Float = 0.1
     private let cursorController = CursorController()
     private var updateTimer: Timer?
+    
+    // ProfileViewModelへの参照（感度設定を取得するため）
+    weak var profileViewModel: ControllerProfileViewModel?
     
     init() {
         startBackgroundUpdates()
@@ -36,20 +40,37 @@ class ControllerMonitor: ObservableObject {
                     self.buttonA = gamepad.buttonA.isPressed
                     
                     // 左スティックの状態を更新（デッドゾーン処理）
-                    let rawX = gamepad.leftThumbstick.xAxis.value
-                    let rawY = gamepad.leftThumbstick.yAxis.value
+                    let rawLeftX = gamepad.leftThumbstick.xAxis.value
+                    let rawLeftY = gamepad.leftThumbstick.yAxis.value
                     
-                    let processedX = abs(rawX) > self.deadzone ? rawX : 0.0
-                    let processedY = abs(rawY) > self.deadzone ? rawY : 0.0
+                    let processedLeftX = abs(rawLeftX) > self.deadzone ? rawLeftX : 0.0
+                    let processedLeftY = abs(rawLeftY) > self.deadzone ? rawLeftY : 0.0
                     
-                    self.leftStick = (processedX, processedY)
+                    self.leftStick = (processedLeftX, processedLeftY)
                     
-                    // カーソル移動
-                    let deltaX = processedX * 3
-                    let deltaY = -processedY * 3
+                    // 右スティックの状態を更新（デッドゾーン処理）
+                    let rawRightX = gamepad.rightThumbstick.xAxis.value
+                    let rawRightY = gamepad.rightThumbstick.yAxis.value
                     
+                    let processedRightX = abs(rawRightX) > self.deadzone ? rawRightX : 0.0
+                    let processedRightY = abs(rawRightY) > self.deadzone ? rawRightY : 0.0
+                    
+                    self.rightStick = (processedRightX, processedRightY)
+                    
+                    // 感度設定を取得（デフォルトは10.0）
+                    let leftSensitivity = self.profileViewModel?.currentStickSensitivity(isLeftStick: true) ?? 10.0
+                    let rightSensitivity = self.profileViewModel?.currentStickSensitivity(isLeftStick: false) ?? 10.0
+                    
+                    // 左スティック：カーソル移動
+                    let deltaX = processedLeftX * Float(leftSensitivity)
+                    let deltaY = -processedLeftY * Float(leftSensitivity)
                     self.cursorController.moveCursor(deltaX: deltaX, deltaY: deltaY)
                     self.cursorController.updateButtonA(isPressed: self.buttonA)
+                    
+                    // 右スティック：スクロール
+                    let scrollX = processedRightX * Float(rightSensitivity) * 2.0
+                    let scrollY = -processedRightY * Float(rightSensitivity) * 1.5
+                    self.cursorController.scrollWheel(deltaX: scrollX, deltaY: scrollY)
                 }
             } else {
                 // コントローラーが接続されていない
@@ -59,6 +80,7 @@ class ControllerMonitor: ObservableObject {
                         self.currentController = nil
                         self.buttonA = false
                         self.leftStick = (0.0, 0.0)
+                        self.rightStick = (0.0, 0.0)
                     }
                 }
             }
@@ -82,14 +104,28 @@ class CursorController :ObservableObject {
     }
 
     func moveCursor(deltaX: Float, deltaY: Float) {
+        // デルタがゼロの場合は何もしない（不要なイベント送信を削減）
+        guard deltaX != 0 || deltaY != 0 else { return }
+        
         let currentPosition = getPosition()
-        let newX = currentPosition.x + CGFloat(deltaX) * 3
-        let newY = currentPosition.y + CGFloat(deltaY) * 3
+        let newX = currentPosition.x + CGFloat(deltaX)
+        let newY = currentPosition.y + CGFloat(deltaY)
 
         let eventType: CGEventType = buttonAPressed ? .leftMouseDragged : .mouseMoved
         
         if let moveEvent = CGEvent(mouseEventSource: nil, mouseType: eventType, mouseCursorPosition: CGPoint(x: newX, y: newY), mouseButton: .left) {
             moveEvent.post(tap: .cghidEventTap)
+        }
+    }
+    
+    func scrollWheel(deltaX: Float, deltaY: Float) {
+        // デルタがゼロの場合は何もしない
+        guard deltaX != 0 || deltaY != 0 else { return }
+        
+        let position = getPosition()
+        
+        if let scrollEvent = CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 2, wheel1: Int32(deltaY), wheel2: Int32(deltaX), wheel3: 0) {
+            scrollEvent.post(tap: .cghidEventTap)
         }
     }
 

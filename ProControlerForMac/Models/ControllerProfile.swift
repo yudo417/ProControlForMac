@@ -147,7 +147,8 @@ struct Layer: Identifiable, Codable, Hashable {
 enum ButtonActionType: String, Codable, Hashable {
     case keyInput = "キー入力"
     case layerShift = "レイヤー切り替え"
-    // 将来的にマウス操作なども追加可能
+    case leftClick = "左クリック"
+    case rightClick = "右クリック"
 }
 
 /// 個々のボタン設定（中段でボタンのList）
@@ -228,6 +229,12 @@ struct ButtonConfig: Identifiable, Codable, Hashable {
             
         case .layerShift:
             return "レイヤー切り替え"
+            
+        case .leftClick:
+            return "🖱️ 左クリック"
+            
+        case .rightClick:
+            return "🖱️ 右クリック"
         }
     }
 }

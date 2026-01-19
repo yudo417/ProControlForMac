@@ -4,6 +4,16 @@ import SwiftUI
 import Combine
 import GameController
 
+// MARK: - Detail Selection
+
+/// DetailView で表示する内容の種類
+enum DetailSelection: Equatable {
+    case button(UUID)    // ButtonConfig.id
+    case leftStick
+    case rightStick
+    case none
+}
+
 class ControllerProfileViewModel: ObservableObject {
     /// すべてのコントローラー
     @Published var controllers: [Controller] = []
@@ -15,6 +25,8 @@ class ControllerProfileViewModel: ObservableObject {
     @Published var selectedButtonConfigId: UUID?
     /// 選択中のレイヤーインデックス
     @Published var selectedLayerIndex: Int = 0
+    /// DetailView の表示内容
+    @Published var detailSelection: DetailSelection = .none
 
     private let storageKey = "ControllerProfiles"
     private var cancellables = Set<AnyCancellable>()
@@ -270,14 +282,15 @@ class ControllerProfileViewModel: ObservableObject {
     
     // MARK: - Input Handling
     
-    /// ボタン入力イベントを処理（レイヤー切り替えなど）
+    /// ボタン入力イベントを処理（レイヤー切り替え、マウスクリックなど）
     func handleButtonEvent(buttonId: String, isPressed: Bool) {
         guard let profile = selectedProfile else { return }
         
         // 1. 現在のレイヤーでの設定を確認
         if selectedLayerIndex < profile.layers.count {
             if let config = profile.layers[selectedLayerIndex].buttonConfigs.first(where: { $0.detectedButtonId == buttonId }) {
-                if config.actionType == .layerShift {
+                switch config.actionType {
+                case .layerShift:
                     if isPressed, let targetId = config.targetLayerId {
                         // ターゲットレイヤーへ切り替え
                         if let targetIndex = profile.layers.firstIndex(where: { $0.id == targetId }) {
@@ -294,6 +307,18 @@ class ControllerProfileViewModel: ObservableObject {
                         print("🔄 Layer reset to 0 (Button release: \(buttonId))")
                     }
                     return
+                    
+                case .leftClick:
+                    executeMouseClick(isPressed: isPressed, isRightClick: false)
+                    return
+                    
+                case .rightClick:
+                    executeMouseClick(isPressed: isPressed, isRightClick: true)
+                    return
+                    
+                case .keyInput:
+                    // キー入力は ButtonDetector で処理されるので、ここでは何もしない
+                    break
                 }
             }
         }
@@ -311,6 +336,66 @@ class ControllerProfileViewModel: ObservableObject {
                 }
             }
         }
+    }
+    
+    // MARK: - Mouse Click
+    
+    /// マウスクリックイベントを発行
+    private func executeMouseClick(isPressed: Bool, isRightClick: Bool) {
+        guard let event = CGEvent(source: nil) else { return }
+        let position = event.location
+        
+        let mouseButton: CGMouseButton = isRightClick ? .right : .left
+        
+        if isPressed {
+            // マウスダウン
+            let eventType: CGEventType = isRightClick ? .rightMouseDown : .leftMouseDown
+            if let downEvent = CGEvent(mouseEventSource: nil, mouseType: eventType, mouseCursorPosition: position, mouseButton: mouseButton) {
+                downEvent.post(tap: .cghidEventTap)
+                print("🖱️ \(isRightClick ? "Right" : "Left") click down")
+            }
+        } else {
+            // マウスアップ
+            let eventType: CGEventType = isRightClick ? .rightMouseUp : .leftMouseUp
+            if let upEvent = CGEvent(mouseEventSource: nil, mouseType: eventType, mouseCursorPosition: position, mouseButton: mouseButton) {
+                upEvent.post(tap: .cghidEventTap)
+                print("🖱️ \(isRightClick ? "Right" : "Left") click up")
+            }
+        }
+    }
+    
+    // MARK: - Stick Sensitivity
+    
+    /// スティック感度を更新
+    func updateStickSensitivity(
+        controllerId: UUID,
+        profileId: UUID,
+        layerIndex: Int,
+        isLeftStick: Bool,
+        sensitivity: Double
+    ) {
+        guard let controllerIndex = controllers.firstIndex(where: { $0.id == controllerId }),
+              let profileIndex = controllers[controllerIndex].profiles.firstIndex(where: { $0.id == profileId }),
+              layerIndex < controllers[controllerIndex].profiles[profileIndex].layers.count else {
+            return
+        }
+        
+        if isLeftStick {
+            controllers[controllerIndex].profiles[profileIndex].layers[layerIndex].leftStickSensitivity = sensitivity
+        } else {
+            controllers[controllerIndex].profiles[profileIndex].layers[layerIndex].rightStickSensitivity = sensitivity
+        }
+    }
+    
+    /// 現在選択中のレイヤーのスティック感度を取得
+    func currentStickSensitivity(isLeftStick: Bool) -> Double {
+        guard let profile = selectedProfile,
+              selectedLayerIndex < profile.layers.count else {
+            return 10.0 // デフォルト値
+        }
+        
+        let layer = profile.layers[selectedLayerIndex]
+        return isLeftStick ? layer.leftStickSensitivity : layer.rightStickSensitivity
     }
     
     // MARK: - Default Data Setup
