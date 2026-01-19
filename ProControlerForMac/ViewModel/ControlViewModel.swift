@@ -3,7 +3,6 @@ import GameController
 import AppKit
 
 class ControllerMonitor: ObservableObject {
-    @Published var buttonA: Bool = false
     @Published var leftStick: (x: Float, y: Float) = (0.0, 0.0)
     @Published var rightStick: (x: Float, y: Float) = (0.0, 0.0)
     @Published var isConnected: Bool = false
@@ -36,9 +35,6 @@ class ControllerMonitor: ObservableObject {
                 
                 // ポーリングで値を取得（valueChangedHandlerの代わり）
                 DispatchQueue.main.async {
-                    // Aボタンの状態を更新
-                    self.buttonA = gamepad.buttonA.isPressed
-                    
                     // 左スティックの状態を更新（デッドゾーン処理）
                     let rawLeftX = gamepad.leftThumbstick.xAxis.value
                     let rawLeftY = gamepad.leftThumbstick.yAxis.value
@@ -65,7 +61,6 @@ class ControllerMonitor: ObservableObject {
                     let deltaX = processedLeftX * Float(leftSensitivity)
                     let deltaY = -processedLeftY * Float(leftSensitivity)
                     self.cursorController.moveCursor(deltaX: deltaX, deltaY: deltaY)
-                    self.cursorController.updateButtonA(isPressed: self.buttonA)
                     
                     // 右スティック：スクロール
                     let scrollX = processedRightX * Float(rightSensitivity) * 2.0
@@ -78,7 +73,6 @@ class ControllerMonitor: ObservableObject {
                     DispatchQueue.main.async {
                         self.isConnected = false
                         self.currentController = nil
-                        self.buttonA = false
                         self.leftStick = (0.0, 0.0)
                         self.rightStick = (0.0, 0.0)
                     }
@@ -94,8 +88,6 @@ class ControllerMonitor: ObservableObject {
 
 // MARK: - バックグラウンド用のカーソル制御
 class CursorController :ObservableObject {
-    private var buttonAPressed = false
-    
     func getPosition() -> CGPoint {
         guard let event = CGEvent(source: nil) else {
             return .zero
@@ -110,10 +102,8 @@ class CursorController :ObservableObject {
         let currentPosition = getPosition()
         let newX = currentPosition.x + CGFloat(deltaX)
         let newY = currentPosition.y + CGFloat(deltaY)
-
-        let eventType: CGEventType = buttonAPressed ? .leftMouseDragged : .mouseMoved
         
-        if let moveEvent = CGEvent(mouseEventSource: nil, mouseType: eventType, mouseCursorPosition: CGPoint(x: newX, y: newY), mouseButton: .left) {
+        if let moveEvent = CGEvent(mouseEventSource: nil, mouseType: .mouseMoved, mouseCursorPosition: CGPoint(x: newX, y: newY), mouseButton: .left) {
             moveEvent.post(tap: .cghidEventTap)
         }
     }
@@ -126,23 +116,6 @@ class CursorController :ObservableObject {
         
         if let scrollEvent = CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 2, wheel1: Int32(deltaY), wheel2: Int32(deltaX), wheel3: 0) {
             scrollEvent.post(tap: .cghidEventTap)
-        }
-    }
-
-    func updateButtonA(isPressed: Bool) {
-        if isPressed && !buttonAPressed {
-            let position = getPosition()
-            if let downEvent = CGEvent(mouseEventSource: nil, mouseType: .leftMouseDown, mouseCursorPosition: position, mouseButton: .left) {
-                downEvent.post(tap: .cghidEventTap)
-            }
-            buttonAPressed = true
-        }
-        else if !isPressed && buttonAPressed {
-            let position = getPosition()
-            if let upEvent = CGEvent(mouseEventSource: nil, mouseType: .leftMouseUp, mouseCursorPosition: position, mouseButton: .left) {
-                upEvent.post(tap: .cghidEventTap)
-            }
-            buttonAPressed = false
         }
     }
 }
