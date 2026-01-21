@@ -428,6 +428,8 @@ class ControllerProfileViewModel: ObservableObject {
             // マウスダウン
             let eventType: CGEventType = isRightClick ? .rightMouseDown : .leftMouseDown
             if let downEvent = CGEvent(mouseEventSource: nil, mouseType: eventType, mouseCursorPosition: position, mouseButton: mouseButton) {
+                // 修飾キーを明示的にクリア（押されていない状態にする）
+                downEvent.flags = []
                 downEvent.post(tap: .cghidEventTap)
                 print("🖱️ \(isRightClick ? "Right" : "Left") click down")
             }
@@ -435,6 +437,8 @@ class ControllerProfileViewModel: ObservableObject {
             // マウスアップ
             let eventType: CGEventType = isRightClick ? .rightMouseUp : .leftMouseUp
             if let upEvent = CGEvent(mouseEventSource: nil, mouseType: eventType, mouseCursorPosition: position, mouseButton: mouseButton) {
+                // 修飾キーを明示的にクリア（押されていない状態にする）
+                upEvent.flags = []
                 upEvent.post(tap: .cghidEventTap)
                 print("🖱️ \(isRightClick ? "Right" : "Left") click up")
             }

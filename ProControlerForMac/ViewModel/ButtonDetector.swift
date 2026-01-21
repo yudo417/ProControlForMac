@@ -373,25 +373,60 @@ class ButtonDetector: ObservableObject {
         
         // 修飾キーを取得
         var flags: CGEventFlags = []
+        var modifierKeyCodes: [CGKeyCode] = [] // 修飾キーのキーコードを記録
+        
         if let mods = shortcut.modifierFlags {
-            if mods.contains(.control) { flags.insert(.maskControl) }
-            if mods.contains(.option) { flags.insert(.maskAlternate) }
-            if mods.contains(.shift) { flags.insert(.maskShift) }
-            if mods.contains(.command) { flags.insert(.maskCommand) }
+            if mods.contains(.control) {
+                flags.insert(.maskControl)
+                modifierKeyCodes.append(59) // Control (左)
+            }
+            if mods.contains(.option) {
+                flags.insert(.maskAlternate)
+                modifierKeyCodes.append(58) // Option (左)
+            }
+            if mods.contains(.shift) {
+                flags.insert(.maskShift)
+                modifierKeyCodes.append(56) // Shift (左)
+            }
+            if mods.contains(.command) {
+                flags.insert(.maskCommand)
+                modifierKeyCodes.append(55) // Command (左)
+            }
         }
         
-        // KeyDownイベント
+        // 1. 修飾キーのKeyDownイベントを送信
+        for modKeyCode in modifierKeyCodes {
+            if let modKeyDown = CGEvent(keyboardEventSource: nil, virtualKey: modKeyCode, keyDown: true) {
+                modKeyDown.post(tap: .cghidEventTap)
+            }
+        }
+        
+        // 2. メインキーのKeyDownイベント
         guard let keyDown = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: true) else {
+            // 失敗した場合は修飾キーをリリース
+            releaseModifierKeys(modifierKeyCodes)
             return
         }
         keyDown.flags = flags
         keyDown.post(tap: .cghidEventTap)
         
-        // KeyUpイベント（少し遅延）
+        // 3. メインキーのKeyUpイベント（少し遅延）
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             if let keyUp = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: false) {
                 keyUp.flags = flags
                 keyUp.post(tap: .cghidEventTap)
+            }
+            
+            // 4. 修飾キーのKeyUpイベントを送信（メインキーの後にリリース）
+            self.releaseModifierKeys(modifierKeyCodes)
+        }
+    }
+    
+    /// 修飾キーをリリース
+    private func releaseModifierKeys(_ modifierKeyCodes: [CGKeyCode]) {
+        for modKeyCode in modifierKeyCodes {
+            if let modKeyUp = CGEvent(keyboardEventSource: nil, virtualKey: modKeyCode, keyDown: false) {
+                modKeyUp.post(tap: .cghidEventTap)
             }
         }
     }
