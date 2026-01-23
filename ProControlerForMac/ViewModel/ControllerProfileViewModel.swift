@@ -237,9 +237,6 @@ class ControllerProfileViewModel: ObservableObject {
         actionType: ButtonActionType? = nil,
         keyCode: UInt16? = nil,
         modifierFlags: NSEvent.ModifierFlags? = nil,
-        isTurbo: Bool? = nil,
-        isLongPress: Bool? = nil,
-        longPressDuration: Double? = nil,
         targetLayerId: UUID? = nil,
         shouldUpdateTargetLayerId: Bool = false
     ) {
@@ -259,9 +256,6 @@ class ControllerProfileViewModel: ObservableObject {
             config.assignedKey = KeyCodeConverter.keyCodeToString(keyCode)
         }
         if let modifierFlags = modifierFlags { config.modifierFlags = modifierFlags }
-        if let isTurbo = isTurbo { config.isTurbo = isTurbo }
-        if let isLongPress = isLongPress { config.isLongPress = isLongPress }
-        if let longPressDuration = longPressDuration { config.longPressDuration = longPressDuration }
         
         // targetLayerIdの更新ロジック（nilクリア対応）
         if shouldUpdateTargetLayerId {
@@ -288,8 +282,6 @@ class ControllerProfileViewModel: ObservableObject {
         config.keyCode = nil
         config.assignedKey = nil
         config.modifierFlagsRawValue = nil
-        config.isTurbo = false
-        config.isLongPress = false
         config.targetLayerId = nil
         
         controllers[controllerIndex].profiles[profileIndex].layers[layerIndex].buttonConfigs[buttonIndex] = config

@@ -90,9 +90,6 @@ struct ButtonConfigDetailView: View {
     @State private var useOption = false
     @State private var useShift = false
     @State private var useCommand = false
-    @State private var isTurbo = false
-    @State private var isLongPress = false
-    @State private var longPressDuration = 0.5
     
     // 新機能: アクションタイプとターゲットレイヤー
     @State private var actionType: ButtonActionType = .keyInput
@@ -198,32 +195,6 @@ struct ButtonConfigDetailView: View {
                     }
                 }
                 
-                // 連射設定
-                Section("連射設定") {
-                    Toggle(isOn: $isTurbo) {
-                        Text("連射を有効にする")
-                    }
-                    .toggleStyle(.switch)
-                }
-                
-                // 長押し設定
-                Section("長押し設定") {
-                    Toggle(isOn: $isLongPress) {
-                        Text("長押しを有効にする")
-                    }
-                    .toggleStyle(.switch)
-                    
-                    if isLongPress {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("長押し判定時間: \(longPressDuration, specifier: "%.2f")秒")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Slider(value: $longPressDuration, in: 0.1...2.0, step: 0.1)
-                        }
-                        .padding(.top, 8)
-                    }
-                }
-                
             case .leftClick:
                 // 左クリック設定
                 Section("左クリック") {
@@ -313,9 +284,6 @@ struct ButtonConfigDetailView: View {
         targetLayerId = buttonConfig.targetLayerId
         
         selectedKeyCode = buttonConfig.keyCode
-        isTurbo = buttonConfig.isTurbo
-        isLongPress = buttonConfig.isLongPress
-        longPressDuration = buttonConfig.longPressDuration
 
         if let mods = buttonConfig.modifierFlags {
             useControl = mods.contains(.control)
@@ -354,9 +322,6 @@ struct ButtonConfigDetailView: View {
             actionType: actionType,
             keyCode: actionType == .keyInput ? selectedKeyCode : nil,
             modifierFlags: actionType == .keyInput ? finalModifiers : nil,
-            isTurbo: actionType == .keyInput ? isTurbo : false,
-            isLongPress: actionType == .keyInput ? isLongPress : false,
-            longPressDuration: longPressDuration,
             targetLayerId: actionType == .layerShift ? targetLayerId : nil
         )
         
@@ -386,9 +351,6 @@ struct ButtonConfigDetailView: View {
         useOption = false
         useShift = false
         useCommand = false
-        isTurbo = false
-        isLongPress = false
-        longPressDuration = 0.5
         
         profileViewModel.updateButtonConfig(
             controllerId: controllerId,
@@ -398,9 +360,6 @@ struct ButtonConfigDetailView: View {
             actionType: .keyInput,
             keyCode: nil,
             modifierFlags: nil,
-            isTurbo: false,
-            isLongPress: false,
-            longPressDuration: 0.5,
             targetLayerId: nil
         )
     }

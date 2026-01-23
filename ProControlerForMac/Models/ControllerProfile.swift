@@ -181,9 +181,6 @@ struct ButtonConfig: Identifiable, Codable, Hashable {
             modifierFlagsRawValue = newValue?.rawValue
         }
     }
-    var isTurbo: Bool  // 連射設定
-    var isLongPress: Bool  // 長押し設定
-    var longPressDuration: Double  // 長押し判定時間（秒）
     
     // Type: レイヤー切り替え
     var targetLayerId: UUID? // 切り替え先のレイヤーID
@@ -198,9 +195,6 @@ struct ButtonConfig: Identifiable, Codable, Hashable {
         assignedKey: String? = nil,
         keyCode: UInt16? = nil,
         modifierFlags: NSEvent.ModifierFlags? = nil,
-        isTurbo: Bool = false,
-        isLongPress: Bool = false,
-        longPressDuration: Double = 0.5,
         targetLayerId: UUID? = nil,
         detectedButtonId: String? = nil
     ) {
@@ -210,9 +204,6 @@ struct ButtonConfig: Identifiable, Codable, Hashable {
         self.assignedKey = assignedKey
         self.keyCode = keyCode
         self.modifierFlagsRawValue = modifierFlags?.rawValue
-        self.isTurbo = isTurbo
-        self.isLongPress = isLongPress
-        self.longPressDuration = longPressDuration
         self.targetLayerId = targetLayerId
         self.detectedButtonId = detectedButtonId
     }
