@@ -107,7 +107,7 @@ class ControllerProfileViewModel: ObservableObject {
             return nil
         }
         
-        // デフォルトボタンの生成
+        // デフォルトボタンの設定からButtonConfigを生成
         let defaultButtonConfigs = ButtonDetector.defaultProControllerButtons.map { detectedButton in
             ButtonConfig(
                 name: detectedButton.displayName,
