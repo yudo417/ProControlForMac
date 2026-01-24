@@ -207,6 +207,47 @@ struct ButtonConfigDetailView: View {
                     .foregroundColor(.secondary)
                 }
                 
+                // 修飾キー
+                Section("修飾キー") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Toggle(isOn: $useControl) {
+                            HStack {
+                                Text("⌃")
+                                    .font(.title2)
+                                Text("Control")
+                            }
+                        }
+                        .toggleStyle(.switch)
+                        
+                        Toggle(isOn: $useOption) {
+                            HStack {
+                                Text("⌥")
+                                    .font(.title2)
+                                Text("Option")
+                            }
+                        }
+                        .toggleStyle(.switch)
+                        
+                        Toggle(isOn: $useShift) {
+                            HStack {
+                                Text("⇧")
+                                    .font(.title2)
+                                Text("Shift")
+                            }
+                        }
+                        .toggleStyle(.switch)
+                        
+                        Toggle(isOn: $useCommand) {
+                            HStack {
+                                Text("⌘")
+                                    .font(.title2)
+                                Text("Command")
+                            }
+                        }
+                        .toggleStyle(.switch)
+                    }
+                }
+                
             case .rightClick:
                 // 右クリック設定
                 Section("右クリック") {
@@ -217,6 +258,47 @@ struct ButtonConfigDetailView: View {
                     }
                     .font(.caption)
                     .foregroundColor(.secondary)
+                }
+                
+                // 修飾キー
+                Section("修飾キー") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Toggle(isOn: $useControl) {
+                            HStack {
+                                Text("⌃")
+                                    .font(.title2)
+                                Text("Control")
+                            }
+                        }
+                        .toggleStyle(.switch)
+                        
+                        Toggle(isOn: $useOption) {
+                            HStack {
+                                Text("⌥")
+                                    .font(.title2)
+                                Text("Option")
+                            }
+                        }
+                        .toggleStyle(.switch)
+                        
+                        Toggle(isOn: $useShift) {
+                            HStack {
+                                Text("⇧")
+                                    .font(.title2)
+                                Text("Shift")
+                            }
+                        }
+                        .toggleStyle(.switch)
+                        
+                        Toggle(isOn: $useCommand) {
+                            HStack {
+                                Text("⌘")
+                                    .font(.title2)
+                                Text("Command")
+                            }
+                        }
+                        .toggleStyle(.switch)
+                    }
                 }
                 
             case .layerShift:
@@ -314,6 +396,9 @@ struct ButtonConfigDetailView: View {
         let finalModifiers = modifiers.isEmpty ? nil : modifiers
         let currentLayerIndex = profileViewModel.selectedLayerIndex
         
+        // 修飾キーを全てオフにする場合（nilに設定する場合）は、shouldUpdateModifierFlagsをtrueにする
+        let shouldUpdateModifierFlags = (actionType == .keyInput || actionType == .leftClick || actionType == .rightClick) && modifiers.isEmpty
+        
         profileViewModel.updateButtonConfig(
             controllerId: controllerId,
             profileId: profileId,
@@ -321,8 +406,9 @@ struct ButtonConfigDetailView: View {
             buttonConfigId: buttonConfig.id,
             actionType: actionType,
             keyCode: actionType == .keyInput ? selectedKeyCode : nil,
-            modifierFlags: actionType == .keyInput ? finalModifiers : nil,
-            targetLayerId: actionType == .layerShift ? targetLayerId : nil
+            modifierFlags: (actionType == .keyInput || actionType == .leftClick || actionType == .rightClick) ? finalModifiers : nil,
+            targetLayerId: actionType == .layerShift ? targetLayerId : nil,
+            shouldUpdateModifierFlags: shouldUpdateModifierFlags
         )
         
         // ButtonDetectorにもショートカットを登録（キー入力モードの場合のみ）

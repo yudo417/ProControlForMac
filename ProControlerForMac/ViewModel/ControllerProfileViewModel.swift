@@ -238,7 +238,8 @@ class ControllerProfileViewModel: ObservableObject {
         keyCode: UInt16? = nil,
         modifierFlags: NSEvent.ModifierFlags? = nil,
         targetLayerId: UUID? = nil,
-        shouldUpdateTargetLayerId: Bool = false
+        shouldUpdateTargetLayerId: Bool = false,
+        shouldUpdateModifierFlags: Bool = false
     ) {
         guard let controllerIndex = controllers.firstIndex(where: { $0.id == controllerId }),
               let profileIndex = controllers[controllerIndex].profiles.firstIndex(where: { $0.id == profileId }),
@@ -255,7 +256,13 @@ class ControllerProfileViewModel: ObservableObject {
             config.keyCode = keyCode
             config.assignedKey = KeyCodeConverter.keyCodeToString(keyCode)
         }
-        if let modifierFlags = modifierFlags { config.modifierFlags = modifierFlags }
+        
+        // modifierFlagsの更新ロジック（nilクリア対応）
+        if shouldUpdateModifierFlags {
+            config.modifierFlags = modifierFlags
+        } else if let modifierFlags = modifierFlags {
+            config.modifierFlags = modifierFlags
+        }
         
         // targetLayerIdの更新ロジック（nilクリア対応）
         if shouldUpdateTargetLayerId {
@@ -339,11 +346,11 @@ class ControllerProfileViewModel: ObservableObject {
                     return
                     
                 case .leftClick:
-                    executeMouseClick(isPressed: isPressed, isRightClick: false)
+                    executeMouseClick(isPressed: isPressed, isRightClick: false, modifierFlags: config.modifierFlags)
                     return
                     
                 case .rightClick:
-                    executeMouseClick(isPressed: isPressed, isRightClick: true)
+                    executeMouseClick(isPressed: isPressed, isRightClick: true, modifierFlags: config.modifierFlags)
                     return
                     
                 case .keyInput:
@@ -410,29 +417,46 @@ class ControllerProfileViewModel: ObservableObject {
     // MARK: - Mouse Click
     
     /// マウスクリックイベントを発行
-    private func executeMouseClick(isPressed: Bool, isRightClick: Bool) {
+    private func executeMouseClick(isPressed: Bool, isRightClick: Bool, modifierFlags: NSEvent.ModifierFlags?) {
         guard let event = CGEvent(source: nil) else { return }
         let position = event.location
         
         let mouseButton: CGMouseButton = isRightClick ? .right : .left
         
+        // 修飾キーのフラグを設定（ButtonDetectorと同じ方法で変換）
+        var flags: CGEventFlags = []
+        if let mods = modifierFlags {
+            if mods.contains(.control) {
+                flags.insert(.maskControl)
+            }
+            if mods.contains(.option) {
+                flags.insert(.maskAlternate)
+            }
+            if mods.contains(.shift) {
+                flags.insert(.maskShift)
+            }
+            if mods.contains(.command) {
+                flags.insert(.maskCommand)
+            }
+        }
+        
         if isPressed {
             // マウスダウン
             let eventType: CGEventType = isRightClick ? .rightMouseDown : .leftMouseDown
             if let downEvent = CGEvent(mouseEventSource: nil, mouseType: eventType, mouseCursorPosition: position, mouseButton: mouseButton) {
-                // 修飾キーを明示的にクリア（押されていない状態にする）
-                downEvent.flags = []
+                downEvent.flags = flags
                 downEvent.post(tap: .cghidEventTap)
-                print("🖱️ \(isRightClick ? "Right" : "Left") click down")
+                let modString = modifierFlags.map { KeyCodeConverter.modifiersToString($0) } ?? ""
+                print("🖱️ \(isRightClick ? "Right" : "Left") click down\(modString.isEmpty ? "" : " with \(modString)")")
             }
         } else {
             // マウスアップ
             let eventType: CGEventType = isRightClick ? .rightMouseUp : .leftMouseUp
             if let upEvent = CGEvent(mouseEventSource: nil, mouseType: eventType, mouseCursorPosition: position, mouseButton: mouseButton) {
-                // 修飾キーを明示的にクリア（押されていない状態にする）
-                upEvent.flags = []
+                upEvent.flags = flags
                 upEvent.post(tap: .cghidEventTap)
-                print("🖱️ \(isRightClick ? "Right" : "Left") click up")
+                let modString = modifierFlags.map { KeyCodeConverter.modifiersToString($0) } ?? ""
+                print("🖱️ \(isRightClick ? "Right" : "Left") click up\(modString.isEmpty ? "" : " with \(modString)")")
             }
         }
     }
