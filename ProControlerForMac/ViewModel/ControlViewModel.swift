@@ -63,8 +63,22 @@ class ControllerMonitor: ObservableObject {
                     self.cursorController.moveCursor(deltaX: deltaX, deltaY: deltaY)
                     
                     // 右スティック：スクロール
-                    let scrollX = processedRightX * Float(rightSensitivity) * 2.0
-                    let scrollY = -processedRightY * Float(rightSensitivity) * 1.5
+                    // 方向設定を取得
+                    let scrollDirection = self.profileViewModel?.currentRightStickScrollDirection() ?? (verticalInverted: false, horizontalInverted: false)
+                    let verticalInverted = scrollDirection.verticalInverted
+                    let horizontalInverted = scrollDirection.horizontalInverted
+                    
+                    // 方向設定に応じて符号を調整
+                    var scrollX = processedRightX * Float(rightSensitivity) * 2.0
+                    var scrollY = -processedRightY * Float(rightSensitivity) * 1.5
+                    
+                    if horizontalInverted {
+                        scrollX = -scrollX
+                    }
+                    if verticalInverted {
+                        scrollY = -scrollY
+                    }
+                    
                     self.cursorController.scrollWheel(deltaX: scrollX, deltaY: scrollY)
                 }
             } else {

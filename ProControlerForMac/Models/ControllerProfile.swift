@@ -128,6 +128,8 @@ struct Layer: Identifiable, Codable, Hashable {
     var buttonConfigs: [ButtonConfig]
     var leftStickSensitivity: Double // マウス感度
     var rightStickSensitivity: Double // スクロール感度
+    var rightStickScrollVerticalInverted: Bool 
+    var rightStickScrollHorizontalInverted: Bool 
     
     init(
         id: UUID = UUID(),
@@ -136,7 +138,9 @@ struct Layer: Identifiable, Codable, Hashable {
         triggerButtonIds: [String]? = nil,
         buttonConfigs: [ButtonConfig] = [],
         leftStickSensitivity: Double = 10.0,
-        rightStickSensitivity: Double = 10.0
+        rightStickSensitivity: Double = 10.0,
+        rightStickScrollVerticalInverted: Bool = false,
+        rightStickScrollHorizontalInverted: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -145,6 +149,8 @@ struct Layer: Identifiable, Codable, Hashable {
         self.buttonConfigs = buttonConfigs
         self.leftStickSensitivity = leftStickSensitivity
         self.rightStickSensitivity = rightStickSensitivity
+        self.rightStickScrollVerticalInverted = rightStickScrollVerticalInverted
+        self.rightStickScrollHorizontalInverted = rightStickScrollHorizontalInverted
     }
 }
 

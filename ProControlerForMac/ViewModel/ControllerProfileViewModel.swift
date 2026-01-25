@@ -495,6 +495,35 @@ class ControllerProfileViewModel: ObservableObject {
         return isLeftStick ? layer.leftStickSensitivity : layer.rightStickSensitivity
     }
     
+    /// 右スティックのスクロール方向設定を更新
+    func updateRightStickScrollDirection(
+        controllerId: UUID,
+        profileId: UUID,
+        layerIndex: Int,
+        verticalInverted: Bool,
+        horizontalInverted: Bool
+    ) {
+        guard let controllerIndex = controllers.firstIndex(where: { $0.id == controllerId }),
+              let profileIndex = controllers[controllerIndex].profiles.firstIndex(where: { $0.id == profileId }),
+              layerIndex < controllers[controllerIndex].profiles[profileIndex].layers.count else {
+            return
+        }
+        
+        controllers[controllerIndex].profiles[profileIndex].layers[layerIndex].rightStickScrollVerticalInverted = verticalInverted
+        controllers[controllerIndex].profiles[profileIndex].layers[layerIndex].rightStickScrollHorizontalInverted = horizontalInverted
+    }
+    
+    /// 現在選択中のレイヤーの右スティックスクロール方向設定を取得
+    func currentRightStickScrollDirection() -> (verticalInverted: Bool, horizontalInverted: Bool) {
+        guard let profile = selectedProfile,
+              selectedLayerIndex < profile.layers.count else {
+            return (verticalInverted: false, horizontalInverted: false) // デフォルト値
+        }
+        
+        let layer = profile.layers[selectedLayerIndex]
+        return (verticalInverted: layer.rightStickScrollVerticalInverted, horizontalInverted: layer.rightStickScrollHorizontalInverted)
+    }
+    
     // MARK: - Default Data Setup
     
     private func setupDefaultData() {

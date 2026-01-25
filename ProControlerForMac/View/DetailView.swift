@@ -461,6 +461,8 @@ struct StickSensitivityDetailView: View {
     
     @State private var sensitivity: Double = 10.0
     @State private var showingSaveAlert = false
+    @State private var verticalInverted: Bool = false
+    @State private var horizontalInverted: Bool = false
     
     private var stickName: String {
         isLeftStick ? "左スティック" : "右スティック"
@@ -533,18 +535,47 @@ struct StickSensitivityDetailView: View {
                 .padding(.vertical, 8)
             }
             
+            // スクロール方向設定（右スティックのみ）
+            if !isLeftStick {
+                Section("スクロール方向") {
+                    VStack(alignment: .leading, spacing: 16) {
+                        // 上下スクロール方向
+                        VStack(alignment: .leading, spacing: 8) {
+                            
+                            Picker("上下スクロール方向", selection: $verticalInverted) {
+                                Text("↑↑").tag(true)
+                                Text("↑↓").tag(false)
+                            }
+                            .pickerStyle(.segmented)
+
+                        }
+                        
+                        // 左右スクロール方向
+                        VStack(alignment: .leading, spacing: 8) {
+                            
+                            Picker("左右スクロール方向", selection: $horizontalInverted) {
+                                Text("↑↑").tag(true)
+                                Text("↑↓").tag(false)
+                            }
+                            .pickerStyle(.segmented)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+            
             // 説明
             Section {
                 VStack(alignment: .leading, spacing: 8) {
                     if isLeftStick {
                         Label("値が大きいほどカーソルが速く動きます", systemImage: "info.circle")
-                        Label("細かい操作には低めの値がおすすめ", systemImage: "hand.point.up.left")
+                        Label("30程度がおすすめ", systemImage: "cursorarrow.motionlines")
                     } else {
                         Label("値が大きいほどスクロールが速くなります", systemImage: "info.circle")
-                        Label("Webブラウジングには10〜15程度がおすすめ", systemImage: "safari")
+                        Label("15程度がおすすめ", systemImage: "cursorarrow.motionlines")
                     }
                 }
-                .font(.caption)
+//                .font(.caption)
                 .foregroundColor(.secondary)
             }
             
@@ -575,6 +606,12 @@ struct StickSensitivityDetailView: View {
     
     private func loadConfiguration() {
         sensitivity = profileViewModel.currentStickSensitivity(isLeftStick: isLeftStick)
+        
+        if !isLeftStick {
+            let direction = profileViewModel.currentRightStickScrollDirection()
+            verticalInverted = direction.verticalInverted
+            horizontalInverted = direction.horizontalInverted
+        }
     }
     
     private func saveConfiguration() {
@@ -586,6 +623,17 @@ struct StickSensitivityDetailView: View {
             isLeftStick: isLeftStick,
             sensitivity: sensitivity
         )
+        
+        // 右スティックの場合、スクロール方向も保存
+        if !isLeftStick {
+            profileViewModel.updateRightStickScrollDirection(
+                controllerId: controllerId,
+                profileId: profileId,
+                layerIndex: currentLayerIndex,
+                verticalInverted: verticalInverted,
+                horizontalInverted: horizontalInverted
+            )
+        }
         
         // 保存成功のフィードバック
         showingSaveAlert = true
