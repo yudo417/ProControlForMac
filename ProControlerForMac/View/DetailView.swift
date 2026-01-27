@@ -323,23 +323,26 @@ struct ButtonConfigDetailView: View {
             }
             
             // アクションボタン
-            Section {
-                HStack(spacing: 12) {
+//            Section {
+                HStack(spacing: 10) {
+                    Spacer()
+                    Button("設定を消去") {
+                        clearConfiguration()
+                    }
+                    .tint(.red)
+                    .buttonStyle(.borderedProminent)
+
                     Button("設定を保存") {
                         saveConfiguration()
                     }
+//                    .tint(.blue)
                     .buttonStyle(.borderedProminent)
-                    // キー入力モードならキー必須、レイヤーモードならレイヤー必須、クリックは常にOK
                     .disabled(actionType == .keyInput && selectedKeyCode == nil)
                     .disabled(actionType == .layerShift && targetLayerId == nil)
-                    .frame(maxWidth: .infinity)
-                    
-                    Button("クリア") {
-                        clearConfiguration()
-                    }
-                    .buttonStyle(.bordered)
+//                    .frame(maxWidth: .infinity)
+
                 }
-            }
+//            }
         }
         .formStyle(.grouped)
         .navigationTitle(buttonConfig.name)
@@ -581,11 +584,15 @@ struct StickSensitivityDetailView: View {
             
             // 保存ボタン
             Section {
-                Button("設定を保存") {
-                    saveConfiguration()
+                HStack{
+                    Spacer()
+                    Button("設定を保存") {
+                        saveConfiguration()
+                    }
+                    
+                    .buttonStyle(.borderedProminent)
+    //                .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
-                .frame(maxWidth: .infinity)
             }
         }
         .formStyle(.grouped)

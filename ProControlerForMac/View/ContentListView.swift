@@ -229,9 +229,6 @@ struct ContentListView: View {
 
             List(selection: $profileViewModel.selectedButtonConfigId) {
                 // スティック感度セクション
-                Section("スティック感度") {
-                    // 左スティック
-                }
                 
                 // ボタン設定セクション
                 let groupedButtons = Dictionary(grouping: currentLayer.buttonConfigs) { button in
@@ -239,7 +236,7 @@ struct ContentListView: View {
                 }
                 
                 ForEach(Array(groupedButtons.keys.sorted()), id: \.self) { category in
-                    Section(category) {
+//                    Section(category) {
                         ForEach(groupedButtons[category] ?? []) { buttonConfig in
                             ButtonConfigRow(
                                 buttonConfig: buttonConfig,
@@ -247,10 +244,10 @@ struct ContentListView: View {
                             )
                             .tag(buttonConfig.id)
                         }
-                    }
+//                    }
                 }
             }
-            .listStyle(.bordered)
+            .listStyle(.inset)
             .onChange(of: profileViewModel.selectedButtonConfigId) { newValue in
                 if let buttonId = newValue {
                     profileViewModel.detailSelection = .button(buttonId)
