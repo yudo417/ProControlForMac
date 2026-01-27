@@ -6,7 +6,8 @@ struct ContentListView: View {
     @ObservedObject var buttonDetector: ButtonDetector
     @State private var showingAddButton = false
     @State private var showingDeleteAlert = false
-    
+    @State private var isshowpopover: Bool = false
+
     var selectedProfile: Profile? {
         profileViewModel.selectedProfile
     }
@@ -121,9 +122,9 @@ struct ContentListView: View {
     
     @ViewBuilder
     private func dualTriggerLayerSetting(profile: Profile) -> some View {
-        HStack {
-            Label("同時押しレイヤー (ZR+ZL)", systemImage: "hand.raised.fill")
-                .font(.subheadline)
+        HStack(spacing:5) {
+            Label("同時押しレイヤー", systemImage: "rectangle.on.rectangle.badge.gearshape")
+//                .font(.subheadline)
                 .foregroundColor(.secondary)
             
             Spacer()
@@ -148,10 +149,28 @@ struct ContentListView: View {
                 }
             }
             .pickerStyle(.menu)
-            .frame(width: 150)
+//            .frame(width: 100)
+
+            Button {
+                self.isshowpopover = true
+            } label: {
+                Image(systemName: "info.circle")
+                    .foregroundStyle(.blue)
+            }
+            .popover(isPresented: $isshowpopover) {
+                VStack{
+                    Text("ZRとZLを同時押しした時に開くレイヤーを設定することができます")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .padding()
+            }
+
         }
         .padding(.horizontal)
-        .padding(.vertical, 8)
+        .padding(.vertical, 5)
         .background(Material.bar)
     }
     
