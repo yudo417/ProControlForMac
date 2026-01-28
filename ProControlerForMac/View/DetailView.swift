@@ -148,6 +148,7 @@ struct ButtonConfigDetailView: View {
                         Text("キー")
                             .font(.headline)
                         
+                        // 黒ベースのテキストフィールド風モダンUI
                         SimpleKeyInput(keyCode: $selectedKeyCode)
                             .frame(maxWidth: .infinity)
                     }
@@ -203,7 +204,7 @@ struct ButtonConfigDetailView: View {
                         Label("ボタンを押している間クリック状態が維持されます", systemImage: "hand.tap")
                         Label("ドラッグ操作にも対応", systemImage: "arrow.up.left.and.arrow.down.right")
                     }
-                    .font(.caption)
+//                    .font(.caption)
                     .foregroundColor(.secondary)
                 }
                 
@@ -253,10 +254,10 @@ struct ButtonConfigDetailView: View {
                 Section("右クリック") {
                     VStack(alignment: .leading, spacing: 8) {
                         Label("マウスの右ボタンとして動作します", systemImage: "cursorarrow.click.2")
-                        Label("コンテキストメニューの表示などに使用", systemImage: "contextualmenu.and.cursorarrow")
-                        Label("ボタンを押している間クリック状態が維持されます", systemImage: "hand.tap")
+                        Label("コンテキストメニューの表示などに使用できます", systemImage: "contextualmenu.and.cursorarrow")
+//                        Label("ボタンを押している間クリック状態が維持されます", systemImage: "hand.tap")
                     }
-                    .font(.caption)
+//                    .font(.caption)
                     .foregroundColor(.secondary)
                 }
                 
@@ -312,8 +313,8 @@ struct ButtonConfigDetailView: View {
                             }
                         }
                         
-                        Text("ボタンを押している間、選択したレイヤーの設定が有効になります。\n(離すと元のレイヤーに戻ります)")
-                            .font(.caption)
+                        Text("ボタンを押している間，選択したレイヤーの設定が有効になります\n(離すと元のレイヤーに戻ります)")
+//                            .font(.caption)
                             .foregroundColor(.secondary)
                     } else {
                         Text("プロファイル情報を取得できません")
