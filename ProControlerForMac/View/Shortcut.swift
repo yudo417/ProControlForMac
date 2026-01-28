@@ -19,7 +19,7 @@ struct SimpleKeyInput: View {
                             ProgressView()
                                 .scaleEffect(0.6)
                                 .controlSize(.small)
-                            Text("⌨️ キーボードのキーを押してください...")
+                            Text("⌨️ 登録するキーを押してください")
                                 .foregroundColor(.orange)
                         }
                     } else if let code = keyCode {

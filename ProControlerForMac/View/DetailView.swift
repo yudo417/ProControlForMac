@@ -462,11 +462,11 @@ struct StickSensitivityDetailView: View {
     let profileId: UUID
     @ObservedObject var profileViewModel: ControllerProfileViewModel
     
-    @State private var sensitivity: Double = 10.0
+    @State private var sensitivity: Double = 30.0
     @State private var showingSaveAlert = false
-    @State private var verticalInverted: Bool = false
-    @State private var horizontalInverted: Bool = false
-    
+    @State private var verticalInverted: Bool = true
+    @State private var horizontalInverted: Bool = true
+
     private var stickName: String {
         isLeftStick ? "左スティック" : "右スティック"
     }
@@ -575,7 +575,7 @@ struct StickSensitivityDetailView: View {
                         Label("30程度がおすすめ", systemImage: "cursorarrow.motionlines")
                     } else {
                         Label("値が大きいほどスクロールが速くなります", systemImage: "info.circle")
-                        Label("15程度がおすすめ", systemImage: "cursorarrow.motionlines")
+                        Label("30程度がおすすめ", systemImage: "cursorarrow.motionlines")
                     }
                 }
 //                .font(.caption)

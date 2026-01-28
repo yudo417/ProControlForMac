@@ -31,7 +31,7 @@ struct ContentView: View {
                 profileViewModel: profileViewModel,
                 buttonDetector: buttonDetector
             )
-            .navigationSplitViewColumnWidth(min: 250, ideal: 300, max: 400)
+            .navigationSplitViewColumnWidth(min: 300, ideal: 350, max: 450)
         } detail: {
             // 第3カラム: 詳細設定（ボタン詳細）
             DetailView(

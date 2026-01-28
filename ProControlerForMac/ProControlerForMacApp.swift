@@ -19,6 +19,7 @@ struct ProControlerForMacApp: App {
                 .environmentObject(controllerHandler)
 //            test()
         }
+        .defaultSize(CGSize(width: 1000, height: 700))
         Settings {
             ContentView()
                 .environmentObject(controllerHandler)

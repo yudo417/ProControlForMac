@@ -27,14 +27,14 @@ struct DetectedButton: Identifiable, Codable, Hashable {
     /// SF Symbolsのアイコン名
     var icon: String {
         // idに基づいてアイコンを返す
-        if id.contains("buttonA") { return "a.circle.fill" }
-        if id.contains("buttonB") { return "b.circle.fill" }
-        if id.contains("buttonX") { return "x.circle.fill" }
-        if id.contains("buttonY") { return "y.circle.fill" }
-        if id.contains("leftShoulder") { return "l1.rectangle.roundedbottom.fill" }
-        if id.contains("rightShoulder") { return "r1.rectangle.roundedbottom.fill" }
-        if id.contains("leftTrigger") { return "l2.rectangle.roundedtop.fill" }
-        if id.contains("rightTrigger") { return "r2.rectangle.roundedtop.fill" }
+        if id.contains("button_A") { return "a.circle.fill" }
+        if id.contains("button_B") { return "b.circle.fill" }
+        if id.contains("button_X") { return "x.circle.fill" }
+        if id.contains("button_Y") { return "y.circle.fill" }
+        if id.contains("leftShoulder") { return "l.button.roundedbottom.horizontal.fill" }
+        if id.contains("rightShoulder") { return "r.button.roundedbottom.horizontal.fill" }
+        if id.contains("leftTrigger") { return "zl.button.roundedtop.horizontal.fill" }
+        if id.contains("rightTrigger") { return "zr.button.roundedtop.horizontal.fill" }
         if id.contains("leftThumbstickButton") { return "l.joystick.press.down.fill" }
         if id.contains("rightThumbstickButton") { return "r.joystick.press.down.fill" }
         if id.contains("dpad") {
@@ -99,10 +99,10 @@ class ButtonDetector: ObservableObject {
         DetectedButton(id: "button_Y", displayName: "Y", buttonType: .button),
         
         // D-Pad
-        DetectedButton(id: "dpad_up", displayName: "↑ Up", buttonType: .dpad),
-        DetectedButton(id: "dpad_down", displayName: "↓ Down", buttonType: .dpad),
-        DetectedButton(id: "dpad_left", displayName: "← Left", buttonType: .dpad),
-        DetectedButton(id: "dpad_right", displayName: "→ Right", buttonType: .dpad),
+        DetectedButton(id: "dpad_up", displayName: "↑", buttonType: .dpad),
+        DetectedButton(id: "dpad_down", displayName: "↓", buttonType: .dpad),
+        DetectedButton(id: "dpad_left", displayName: "←", buttonType: .dpad),
+        DetectedButton(id: "dpad_right", displayName: "→", buttonType: .dpad),
         
         // バンパー/トリガー
         DetectedButton(id: "leftShoulder", displayName: "L", buttonType: .shoulder),
@@ -115,8 +115,8 @@ class ButtonDetector: ObservableObject {
         DetectedButton(id: "rightThumbstickButton", displayName: "右スティック押し込み", buttonType: .stick),
         
         // メニューボタン（3つすべて別々のボタン）
-        DetectedButton(id: "buttonMenu", displayName: "+ Plus", buttonType: .menu),
-        DetectedButton(id: "buttonOptions", displayName: "- Minus (Screenshot)", buttonType: .menu),
+        DetectedButton(id: "buttonMenu", displayName: "+", buttonType: .menu),
+        DetectedButton(id: "buttonOptions", displayName: "-", buttonType: .menu),
         DetectedButton(id: "buttonHome", displayName: "🏠 Home", buttonType: .menu)
     ]
     
@@ -512,25 +512,25 @@ class ButtonDetector: ObservableObject {
             if gamepad.dpad.up.isPressed {
                 detectedButton = DetectedButton(
                     id: "dpad_up",
-                    displayName: "↑ Up",
+                    displayName: "↑",
                     buttonType: .dpad
                 )
             } else if gamepad.dpad.down.isPressed {
                 detectedButton = DetectedButton(
                     id: "dpad_down",
-                    displayName: "↓ Down",
+                    displayName: "↓",
                     buttonType: .dpad
                 )
             } else if gamepad.dpad.left.isPressed {
                 detectedButton = DetectedButton(
                     id: "dpad_left",
-                    displayName: "← Left",
+                    displayName: "←",
                     buttonType: .dpad
                 )
             } else if gamepad.dpad.right.isPressed {
                 detectedButton = DetectedButton(
                     id: "dpad_right",
-                    displayName: "→ Right",
+                    displayName: "→",
                     buttonType: .dpad
                 )
             }
@@ -539,13 +539,13 @@ class ButtonDetector: ObservableObject {
         else if element == gamepad.buttonMenu, gamepad.buttonMenu.isPressed {
             detectedButton = DetectedButton(
                 id: "buttonMenu",
-                displayName: "+ Plus",
+                displayName: "+",
                 buttonType: .menu
             )
         } else if let optionsButton = gamepad.buttonOptions, element == optionsButton, optionsButton.isPressed {
             detectedButton = DetectedButton(
                 id: "buttonOptions",
-                displayName: "- Minus (Screenshot)",
+                displayName: "-",
                 buttonType: .menu
             )
         }

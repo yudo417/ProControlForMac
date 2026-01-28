@@ -238,8 +238,12 @@ struct ContentListView: View {
                 ForEach(Array(groupedButtons.keys.sorted()), id: \.self) { category in
 //                    Section(category) {
                         ForEach(groupedButtons[category] ?? []) { buttonConfig in
+                            let iconName = buttonConfig.detectedButtonId.flatMap { id in
+                                buttonDetector.registeredButtons.first(where: { $0.id == id })?.icon
+                            }
                             ButtonConfigRow(
                                 buttonConfig: buttonConfig,
+                                iconName: iconName,
                                 isSelected: profileViewModel.selectedButtonConfigId == buttonConfig.id
                             )
                             .tag(buttonConfig.id)
@@ -287,10 +291,17 @@ struct ContentListView: View {
 
 struct ButtonConfigRow: View {
     let buttonConfig: ButtonConfig
+    let iconName: String?
     let isSelected: Bool
 
     var body: some View {
         HStack(spacing: 12) {
+            if let iconName {
+                Image(systemName: iconName)
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 16))
+            }
+
             Text(buttonConfig.name)
                 .font(.body)
 

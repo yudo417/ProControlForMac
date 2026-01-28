@@ -130,17 +130,18 @@ struct Layer: Identifiable, Codable, Hashable {
     var rightStickSensitivity: Double // スクロール感度
     var rightStickScrollVerticalInverted: Bool 
     var rightStickScrollHorizontalInverted: Bool 
-    
+
+///  App初回の初期値
     init(
         id: UUID = UUID(),
         name: String,
         triggerButtonId: String? = nil,
         triggerButtonIds: [String]? = nil,
         buttonConfigs: [ButtonConfig] = [],
-        leftStickSensitivity: Double = 10.0,
-        rightStickSensitivity: Double = 10.0,
-        rightStickScrollVerticalInverted: Bool = false,
-        rightStickScrollHorizontalInverted: Bool = false
+        leftStickSensitivity: Double = 30.0,
+        rightStickSensitivity: Double = 30.0,
+        rightStickScrollVerticalInverted: Bool = true,
+        rightStickScrollHorizontalInverted: Bool = true
     ) {
         self.id = id
         self.name = name
